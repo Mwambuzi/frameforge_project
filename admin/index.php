@@ -31,13 +31,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         );
         $msg = "Project #$pid updated to '$newState' (KES $newPrice) and logged in audit trail.";
     } elseif ($action === 'toggle_user') {
-        $targetUid = (int)$_POST['user_id'];
-        $newActive = (int)$_POST['is_active'];
+    $targetUid = (int)$_POST['user_id'];
+    $newActive = (int)$_POST['is_active'];
+    if ($targetUid === $adminId) {
+        $msg = "You can't change your own account status.";
+    } else {
         $pdo->prepare("UPDATE users SET is_active = :act WHERE user_id = :uid")
             ->execute([':act' => $newActive, ':uid' => $targetUid]);
         recordAuditLog($pdo, $adminId, 'USER_STATUS_CHANGE', 'users', $targetUid, null, "is_active=$newActive");
         $msg = "User #$targetUid status updated.";
     }
+}
 }
 
 $projects = $pdo->query("
